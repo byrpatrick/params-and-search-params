@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Description
 
-## Getting Started
+This repository reproduces an issue in Vercel when using `searchParams` in Next.js. When the `searchParams` uses the same key that is used in the Dynamic Segment, it is removed from the `searchParams` object. The property is not removed locally in development or when the app is built locally, it also works fine in other hosting services like Netlify.
 
-First, run the development server:
+## Steps to reproduce
+
+1. Create a dynamic segment (e.g., `/src/app/[language]`):
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+mkdir ./src/app/\[language\]
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Create a page for the dynamic segment:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+touch ./src/app/\[language\]/page.tsx
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Add the following code to the page to print the `params` and `searchParams` object:
 
-## Learn More
+```typescript
+export default function Language({
+  params,
+  searchParams,
+}: {
+  params: { language: string };
+  searchParams?: {
+    language?: string;
+  };
+}) {
+  return <pre>{JSON.stringify({ params, searchParams }, null, 2)}</pre>;
+}
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. Deploy your application to Vercel and visit an URL that matches the dynamic segment and includes the query parameter (e.g., `en?language=hello`).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Deployed app to vercel: https://params-and-search-params.vercel.app/en?language=hello
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5. Observe that the `language` key is removed from the `searchParams` object in Vercel:
 
-## Deploy on Vercel
+**Current Output**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```json
+{
+  "params": {
+    "language": "en"
+  },
+  "searchParams": {}
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Expected Output**
+
+The property is not removed locally in development or when the app is built locally. It also works fine in other hosting services like Netlify or StackBlitz.
+
+StackBlitz project: https://stackblitz.com/~/github.com/byrpatrick/params-and-search-params
+Link Netlify deployment: https://params-and-search-params.netlify.app/en?language=hello
+
+```json
+{
+  "params": {
+    "language": "en"
+  },
+  "searchParams": {
+    "language": "hello"
+  }
+}
+```
+
