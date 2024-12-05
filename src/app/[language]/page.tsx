@@ -4,7 +4,7 @@ export default function Language({
 }: {
   params: { language: string };
   searchParams?: {
-    language?: string;
+    something?: string;
   };
 }) {
   return <pre>{JSON.stringify({ params, searchParams }, null, 2)}</pre>;
